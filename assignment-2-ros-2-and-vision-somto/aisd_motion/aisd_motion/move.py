@@ -8,8 +8,8 @@ COME_MARGIN = 0.03 #how far pinky has to be right of index to count as come
 COME_FRAMES = 3 #3 frames in a row to start come (0.3sec)
 TIMEOUT = 0.5 #Stop if no hand seen for this long(sec)
 
-LINEAR_SPEED = 1.5 #use a constant for easy change/testing
-TURN_SPEED = 0.5 #slower turning so come is the main movement
+LINEAR_SPEED = 0.5 #use a constant for easy change/testing
+TURN_SPEED = 0.1 #slower turning so come is the main movement
 LEFT_EDGE = 0.35 #hand centre left of this = turn left
 RIGHT_EDGE = 0.65 #hand centre right of this = turn right
 
