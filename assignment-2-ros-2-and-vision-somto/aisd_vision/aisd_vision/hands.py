@@ -14,7 +14,7 @@ class Hands(Node):
         super().__init__('hands')
         # Subscribe to camera frames from ImagePublisher
         self.subscription = self.create_subscription(
-            String,
+            Image,
             'video_frames',
             self.listener_callback,
             10)

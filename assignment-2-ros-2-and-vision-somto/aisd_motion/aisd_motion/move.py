@@ -27,11 +27,11 @@ class Move(Node):
         if msg.xindex > 0.55:
             # Finger right of centre; negative angular z turns clockwise
             self.get_logger().info('right')
-            angle = -0.1
+            angle = -1.0
         elif msg.xindex < 0.45:
             # Finger left of centre; positive angular z turns counter-clockwise
             self.get_logger().info('left')
-            angle = 0.1
+            angle = 1.0
         else:
             # Finger in the centre band: no turning
             angle = 0.0
@@ -39,7 +39,7 @@ class Move(Node):
         # Compare index and pinky x positions to tell which way the hand is facing.
         if msg.xindex > msg.xpinky:
             self.get_logger().info('come')
-            linear = 0.5  # drive forward at 0.5 m/s
+            linear = 2.0  # drive forward at 0.5 m/s
         else:
             self.get_logger().info('stay')
             linear = 0.0  # stand still
