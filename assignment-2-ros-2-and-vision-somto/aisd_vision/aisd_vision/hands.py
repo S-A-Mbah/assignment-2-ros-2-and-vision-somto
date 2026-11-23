@@ -17,36 +17,36 @@ class Hands(Node):
             Image,
             'video_frames',
             self.listener_callback,
-            10)
+            1)
         self.subscription  # prevent unused variable warning
         self.br = CvBridge()
         self.hand_publisher = self.create_publisher(Hand, 'cmd_hand',10)
+        # make the hand model once so it can track the hand between frames
+        self.myhands = mp_hands.Hands(
+            model_complexity=0,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5)
 
     def listener_callback(self, msg):
         image = self.br.imgmsg_to_cv2(msg)
 
-        PINKY_FINGER_TIP = 20 #pinky landmark index
-        INDEX_FINGER_TIP = 8 #index landmark index
-        # Analyse the image for hands
-        with mp_hands.Hands(
-            model_complexity=0,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5) as myhands:
+        PINKY_FINGER_TIP = 20  # pinky landmark index
+        INDEX_FINGER_TIP = 8  # index landmark index
 
-            # To improve performance, optionally mark the image as not writeable to
-            # pass by reference.
-            image.flags.writeable = False
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            results = myhands.process(image)
-            if results.multi_hand_landmarks:
-                #publish the hand position in terms of index finger and pinky
-                msg = Hand()
-                msg.xpinky = results.multi_hand_landmarks[0].landmark[PINKY_FINGER_TIP].x
-                msg.xindex = results.multi_hand_landmarks[0].landmark[INDEX_FINGER_TIP].x
-                if self.hand_publisher.get_subscription_count() > 0:
-                    self.hand_publisher.publish(msg)
-                else:
-                    self.get_logger().info('waiting for subcriber')
+        # mark image not writeable so it passes by reference (faster)
+        image.flags.writeable = False
+        # mediapipe wants RGB, opencv gives BGR
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        results = self.myhands.process(image)
+        if results.multi_hand_landmarks:
+            # publish the hand position in terms of index finger and pinky
+            msg = Hand()
+            msg.xpinky = results.multi_hand_landmarks[0].landmark[PINKY_FINGER_TIP].x
+            msg.xindex = results.multi_hand_landmarks[0].landmark[INDEX_FINGER_TIP].x
+            if self.hand_publisher.get_subscription_count() > 0:
+                self.hand_publisher.publish(msg)
+            else:
+                self.get_logger().info('waiting for subcriber')
 
 
 
