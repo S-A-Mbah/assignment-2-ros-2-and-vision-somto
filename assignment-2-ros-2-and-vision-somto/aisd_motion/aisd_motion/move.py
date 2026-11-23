@@ -4,12 +4,14 @@ from rclpy.node import Node
 from aisd_msgs.msg import Hand
 from geometry_msgs.msg import Twist
 
-COME_MARGIN = 0.3 #how far index from pinky to count as a come
-COME_FRAMES = 3 #3 constant frames to initiate come (0.3sec)
+COME_MARGIN = 0.03 #how far pinky has to be right of index to count as come
+COME_FRAMES = 3 #3 frames in a row to start come (0.3sec)
 TIMEOUT = 0.5 #Stop if no hand seen for this long(sec)
 
-LINEAR_SPEED = 2.0 #use a constanct for easy change/testing
-TURN_SPEED = 1.0
+LINEAR_SPEED = 1.5 #use a constant for easy change/testing
+TURN_SPEED = 0.5 #slower turning so come is the main movement
+LEFT_EDGE = 0.35 #hand centre left of this = turn left
+RIGHT_EDGE = 0.65 #hand centre right of this = turn right
 
 
 class Move(Node):
@@ -29,13 +31,13 @@ class Move(Node):
         self.last_hand_time = self.get_clock().now()
         self.timed_out = True
         #check if hand went missing
-        self.timer = self.create_timer(0.1,self.timer_callback)
-    
+        self.timer = self.create_timer(0.1, self.timer_callback)
+
     def send_twist(self, linear, angle):
         twist = Twist()
         twist.linear.x = linear
         twist.angular.z = angle
-        if self.vel_publisher.get_subscription_count()>0:
+        if self.vel_publisher.get_subscription_count() > 0:
             self.vel_publisher.publish(twist)
         else:
             self.get_logger().info('waiting for subscriber')
@@ -44,7 +46,7 @@ class Move(Node):
         self.last_hand_time = self.get_clock().now()
         self.timed_out = False
 
-        # index right of pinky = come, otherwise (palm) = stop
+        # pinky right of index (back of hand) = come, palm = stop
         if msg.xpinky - msg.xindex > COME_MARGIN:
             self.come_count += 1
         else:
@@ -56,18 +58,24 @@ class Move(Node):
             self.send_twist(0.0, 0.0)
             return
 
-        # turn towards where the index finger is
-        if msg.xindex > 0.55:
-            self.get_logger().info('right')
+        # use the middle of the hand to steer, not just the index
+        hand_x = (msg.xindex + msg.xpinky) / 2
+
+        # always go forward, only turn if hand is far to one side
+        if hand_x > RIGHT_EDGE:
+            self.get_logger().info('come right')
             angle = -TURN_SPEED
-        elif msg.xindex < 0.45:
-            self.get_logger().info('left')
+        elif hand_x < LEFT_EDGE:
+            self.get_logger().info('come left')
             angle = TURN_SPEED
         else:
             self.get_logger().info('come')
             angle = 0.0
 
-        self.send_twist(LINEAR_SPEED, angle)
+        # double speed if only the index finger is up
+        if msg.fast:
+            self.get_logger().info('fast')
+        self.send_twist(LINEAR_SPEED * 2 if msg.fast else LINEAR_SPEED, angle)
 
     def timer_callback(self):
         # no hand for a while, so stop the turtle

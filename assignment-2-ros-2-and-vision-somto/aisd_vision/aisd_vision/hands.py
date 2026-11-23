@@ -43,6 +43,15 @@ class Hands(Node):
             msg = Hand()
             msg.xpinky = results.multi_hand_landmarks[0].landmark[PINKY_FINGER_TIP].x
             msg.xindex = results.multi_hand_landmarks[0].landmark[INDEX_FINGER_TIP].x
+            lm = results.multi_hand_landmarks[0].landmark
+            # fast = only index up (tip above its middle joint), other fingers curled
+            index_up = lm[8].y < lm[6].y      # index tip above its middle joint
+            middle_down = lm[12].y > lm[10].y  # middle tip below its joint (curled)
+            ring_down = lm[16].y > lm[14].y    # ring curled
+            pinky_down = lm[20].y > lm[18].y   # pinky curled
+            msg.fast = index_up and middle_down and ring_down and pinky_down
+            if msg.fast:
+                msg.xpinky = lm[17].x  # pinky is curled, use its knuckle instead
             if self.hand_publisher.get_subscription_count() > 0:
                 self.hand_publisher.publish(msg)
             else:

@@ -14,6 +14,8 @@
   <depend>std_msgs</depend>
   <depend>aisd_msgs</depend>    
   <depend>python3-mediapipe-pip</depend>
+  <depend>std_msgs</depend>
+
 
 
 
