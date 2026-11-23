@@ -11,7 +11,8 @@ from aisd_msg.msg import Hand
 class Hands(Node):
 
     def __init__(self):
-        super().__init__('minimal_subscriber')
+        super().__init__('hands')
+        # Subscribe to camera frames from ImagePublisher
         self.subscription = self.create_subscription(
             String,
             'cmd_hand',
@@ -24,8 +25,8 @@ class Hands(Node):
     def listener_callback(self, msg):
         image = self.br.imgmsg_to_cv2(msg)
 
-        PINKY_FINGER_TIP = 20 #pinky tip postition
-        INDEX_FINGER_TIP = 8 #index tip position
+        PINKY_FINGER_TIP = 20 #pinky landmark index
+        INDEX_FINGER_TIP = 8 #index landmark index
         # Analyse the image for hands
         with mp_hands.Hands(
             model_complexity=0,
