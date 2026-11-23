@@ -5,6 +5,7 @@
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="aisd@todo.todo">aisd</maintainer>
+  <license>None</license>
 
   <depend>rclpy</depend>
   <depend>image_transport</depend>

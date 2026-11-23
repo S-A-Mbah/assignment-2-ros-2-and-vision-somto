@@ -1,8 +1,8 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Node
+from sensor_msgs.msg import Image
 
-from std_msgs.msg import Image
+from std_msgs.msg import String
 from cv_bridge import CvBridge
 import cv2
 
@@ -17,13 +17,9 @@ class ImagePublisher(Node):
         self.br = CvBridge()
 
     def timer_callback(self):
-        msg = Image()
-        msg.data = 'Hello World: %d' % self.i
-        self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
         ret, frame = self.cap.read()
         if ret == True:
-            self.publisher_.publish(self.br.cv2_to_image(frame))
+            self.publisher_.publish(self.br.cv2_to_imgmsg(frame))
 
 
 def main(args=None):
